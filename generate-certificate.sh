@@ -4,12 +4,9 @@ if [ -z $DOMAIN ]; then
 	DOMAIN=$1
 fi
 
-ACME_ROOT="/root/acme-tiny/acme-tiny"
-ACME_ETC="/etc/acme-tiny"
-CERTIFICATE_DIR="/etc/nginx/ssl/letsencrypt-${DOMAIN}"
-CHALENGE_DIR="/var/www/letsencrypt"
-LETSENCRYPT="/etc/nginx/ssl/letsencrypt"
-CA_CHAIN_URL="https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem"
+BASE=$(dirname $0)
+source ${BASE}/common-config.sh
+
 SHA_BEFORE=
 SHA_AFTER=
 
@@ -25,7 +22,7 @@ if [ -f ${CERTIFICATE_DIR}/chained.pem ]; then
 	SHA_BEFORE=$(shasum ${CERTIFICATE_DIR}/chained.pem | awk '{ print $1 }')
 fi
 
-python ${ACME_ROOT}/acme_tiny.py --account-key ${ACME_ETC}/account.key --csr ${CERTIFICATE_DIR}/domain.csr --acme-dir ${CHALENGE_DIR}/ > ${CERTIFICATE_DIR}/signed.crt
+python ${ACME_ROOT}/acme_tiny.py --account-key ${ACME_KEY} --csr ${CERTIFICATE_DIR}/domain.csr --acme-dir ${CHALENGE_DIR}/ > ${CERTIFICATE_DIR}/signed.crt
 wget -O - ${CA_CHAIN_URL} > ${LETSENCRYPT}/intermediate.pem 2>/dev/null
 cat ${CERTIFICATE_DIR}/signed.crt ${LETSENCRYPT}/intermediate.pem > ${CERTIFICATE_DIR}/chained.pem
 
